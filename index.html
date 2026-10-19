@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dino Nugget - Private Fetal Tracker</title>
+  <style>
+    :root {
+      --bg: #f6f8f5;
+      --card-bg: #ffffff;
+      --primary: #2d5a27;
+      --primary-light: #eaf2e8;
+      --primary-dark: #1d3b19;
+      --accent: #d97736;
+      --accent-light: #fbeee5;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e2e8f0;
+      --radius: 18px;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 24px 16px;
+      line-height: 1.6;
+    }
+
+    .site-wrapper {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Top Navigation */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      color: var(--primary);
+      font-size: 1.35rem;
+    }
+
+    .privacy-badge {
+      font-size: 0.8rem;
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid rgba(45, 90, 39, 0.15);
+    }
+
+    /* Week Stepper & Timeline */
+    .timeline-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 20px 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .timeline-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .btn-step {
+      background: var(--primary-light);
+      border: none;
+      color: var(--primary);
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-step:hover:not(:disabled) {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-step:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .week-indicator {
+      text-align: center;
+    }
+
+    .current-week-label {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--primary);
+      display: block;
+    }
+
+    .trimester-label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .progress-bar-bg {
+      background: var(--border);
+      height: 10px;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .progress-bar-fill {
+      background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+      height: 100%;
+      width: 12.5%;
+      transition: width 0.35s ease-in-out;
+    }
+
+    /* Main Grid Layout for Desktop */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    @media (min-width: 768px) {
+      .dashboard-grid {
+        grid-template-columns: 360px 1fr;
+        align-items: start;
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    /* Dinosaur Companion View */
+    .habitat-card {
+      text-align: center;
+      background: linear-gradient(180deg, #f0f7ef 0%, #ffffff 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .dino-display {
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 8px 0;
+    }
+
+    .dino-svg {
+      width: 150px;
+      height: 150px;
+      filter: drop-shadow(0 6px 8px rgba(0,0,0,0.06));
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .dino-svg:hover {
+      transform: scale(1.06);
+    }
+
+    .size-pill {
+      background: var(--accent-light);
+      border: 1px solid rgba(217, 119, 54, 0.2);
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .stage-title {
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: var(--primary-dark);
+    }
+
+    /* Developmental & Symptom Cards */
+    .details-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .section-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--primary);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .info-list li {
+      font-size: 0.95rem;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      background: #fafbfc;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .info-list li span.bullet {
+      color: var(--accent);
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+
+    /* Footer & Privacy */
+    footer {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 20px 24px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .reset-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      text-decoration: underline;
+      font-size: 0.8rem;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+
+    .reset-btn:hover {
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="site-wrapper">
+    <!-- Navigation Header -->
+    <header>
+      <div class="brand">
+        <span>🦕</span>
+        <span>Dino Nugget</span>
+      </div>
+      <div class="privacy-badge">
+        <span>🔒 Zero Cloud • Client Only</span>
+      </div>
+    </header>
+
+    <!-- Timeline Stepper -->
+    <section class="timeline-card" aria-label="Pregnancy Timeline">
+      <div class="timeline-controls">
+        <button id="prevBtn" class="btn-step" aria-label="Previous Week">‹ Previous</button>
+        <div class="week-indicator">
+          <span id="weekTitle" class="current-week-label">Week 5</span>
+          <span id="trimesterTitle" class="trimester-label">First Trimester</span>
+        </div>
+        <button id="nextBtn" class="btn-step" aria-label="Next Week">Next ›</button>
+      </div>
+      <div class="progress-bar-bg" role="progressbar" aria-valuenow="5" aria-valuemin="4" aria-valuemax="40">
+        <div id="progressFill" class="progress-bar-fill"></div>
+      </div>
+    </section>
+
+    <!-- Two-Column Desktop Dashboard -->
+    <main class="dashboard-grid">
+      <!-- Left Column: Dino Avatar -->
+      <section class="card habitat-card" aria-label="Dino Tamagotchi Habitat">
+        <div id="stageName" class="stage-title">The Nesting Egg</div>
+        <div class="dino-display" id="dinoAvatar">
+          <!-- Dynamically populated SVG -->
+        </div>
+        <div id="sizeBadge" class="size-pill">Size: Apple Seed</div>
+      </section>
+
+      <!-- Right Column: Development & Symptoms -->
+      <div class="details-stack">
+        <section class="card" aria-label="Developmental Milestones">
+          <h2 class="section-title">
+            <span>✨</span> Nugget's Development
+          </h2>
+          <ul id="milestoneList" class="info-list">
+            <!-- Dynamically populated list -->
+          </ul>
+        </section>
+
+        <section class="card" aria-label="Parent Symptoms">
+          <h2 class="section-title">
+            <span>🌿</span> Common Symptoms
+          </h2>
+          <ul id="symptomList" class="info-list">
+            <!-- Dynamically populated list -->
+          </ul>
+        </section>
+      </div>
+    </main>
+
+    <!-- Privacy Statement -->
+    <footer>
+      <p><strong>Private by Design:</strong> Dino Nugget connects to no external servers, collects no analytics, and requires no account. Your journey stays entirely within your browser.</p>
+      <button id="resetData" class="reset-btn">Reset saved week to beginning</button>
+    </footer>
+  </div>
+
+  <script>
+    const timelineData = {
+      5: {
+        stage: "The Nesting Egg",
+        trimester: "First Trimester",
+        size: "Apple Seed (approx. 0.05 in)",
+        progress: 12.5,
+        milestones: [
+          "The neural tube (brain and spinal cord) is rapidly forming.",
+          "A primitive heart tube begins beating rhythmically.",
+          "The tiny blastocyst is firmly rooted in the uterine lining."
+        ],
+        symptoms: [
+          "Heightened fatigue as progesterone spikes.",
+          "Early breast tenderness and subtle swelling.",
+          "Frequent aversions to strong smells or certain foods."
+        ],
+        svg: `
+          <svg class="dino-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="50" cy="55" rx="32" ry="40" fill="#f1f5f9" stroke="#94a3b8" stroke-width="3"/>
+            <path d="M 40 42 Q 46 36 52 45 Q 58 38 64 43" stroke="#cbd5e1" stroke-width="2.5" fill="none"/>
+            <circle cx="42" cy="58" r="4.5" fill="#475569"/>
+            <circle cx="58" cy="58" r="4.5" fill="#475569"/>
+            <circle cx="43" cy="56" r="1.5" fill="#ffffff"/>
+            <circle cx="59" cy="56" r="1.5" fill="#ffffff"/>
+            <path d="M 47 67 Q 50 70 53 67" stroke="#475569" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        `
+      },
+      8: {
+        stage: "The Cracking Shell",
+        trimester: "First Trimester",
+        size: "Raspberry (approx. 0.6 in)",
+        progress: 20,
+        milestones: [
+          "Webbed hands and feet begin dividing into distinct tiny fingers and toes.",
+          "Facial features continue sharpening, with eyelids and nose tips visible.",
+          "Nugget begins spontaneous microscopic twitches and muscle flutters."
+        ],
+        symptoms: [
+          "Morning sickness often reaches its peak intensity.",
+          "Increased urination as fluid volumes expand.",
+          "Vivid dreams and heightened emotional sensitivity."
+        ],
+        svg: `
+          <svg class="dino-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="50" cy="58" rx="34" ry="38" fill="#f1f5f9" stroke="#94a3b8" stroke-width="3"/>
+            <path d="M 32 46 L 44 52 L 38 62 L 52 56 L 60 66 L 68 50" stroke="#2d5a27" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="43" cy="38" r="3.5" fill="#2d5a27"/>
+            <circle cx="57" cy="38" r="3.5" fill="#2d5a27"/>
+            <path d="M 47 46 Q 50 49 53 46" stroke="#2d5a27" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        `
+      },
+      12: {
+        stage: "Baby Hatchling",
+        trimester: "End of First Trimester",
+        size: "Lime (approx. 2.1 in)",
+        progress: 30,
+        milestones: [
+          "All major organs and body structures are formed and functioning.",
+          "Tiny fingernails, toenails, and vocal cords are established.",
+          "Reflexes are active; hands can curl into tiny fists."
+        ],
+        symptoms: [
+          "Placenta fully takes over hormone management; nausea usually starts easing.",
+          "Light dizziness or low blood pressure as circulation expands.",
+          "Round ligament stretches as the womb rises above the pelvis."
+        ],
+        svg: `
+          <svg class="dino-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Body -->
+            <ellipse cx="50" cy="64" rx="28" ry="22" fill="#86efac" stroke="#22c55e" stroke-width="3"/>
+            <circle cx="50" cy="38" r="19" fill="#86efac" stroke="#22c55e" stroke-width="3"/>
+            <!-- Spikes -->
+            <polygon points="50,14 45,21 55,21" fill="#d97736"/>
+            <polygon points="34,26 31,33 40,31" fill="#d97736"/>
+            <polygon points="66,26 60,31 69,33" fill="#d97736"/>
+            <!-- Eyes & Smile -->
+            <circle cx="43" cy="36" r="3.5" fill="#1e293b"/>
+            <circle cx="57" cy="36" r="3.5" fill="#1e293b"/>
+            <circle cx="44" cy="35" r="1.2" fill="#fff"/>
+            <circle cx="58" cy="35" r="1.2" fill="#fff"/>
+            <path d="M 46 44 Q 50 48 54 44" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/>
+            <!-- Feet -->
+            <ellipse cx="38" cy="85" rx="7" ry="4" fill="#22c55e"/>
+            <ellipse cx="62" cy="85" rx="7" ry="4" fill="#22c55e"/>
+          </svg>
+        `
+      }
+    };
+
+    const availableWeeks = [5, 8, 12];
+    let currentWeekIndex = 0;
+
+    // Load saved week from client LocalStorage
+    const savedWeek = localStorage.getItem("dinoNuggetWeek");
+    if (savedWeek) {
+      const idx = availableWeeks.indexOf(parseInt(savedWeek, 10));
+      if (idx !== -1) currentWeekIndex = idx;
+    }
+
+    function renderWeek() {
+      const week = availableWeeks[currentWeekIndex];
+      const data = timelineData[week];
+
+      // Update Header & Progress
+      document.getElementById("weekTitle").textContent = `Week ${week}`;
+      document.getElementById("trimesterTitle").textContent = data.trimester;
+      document.getElementById("progressFill").style.width = `${data.progress}%`;
+
+      // Update Dinosaur Habitat
+      document.getElementById("dinoAvatar").innerHTML = data.svg;
+      document.getElementById("stageName").textContent = data.stage;
+      document.getElementById("sizeBadge").textContent = `Size: ${data.size}`;
+
+      // Update Developmental Milestones
+      const mList = document.getElementById("milestoneList");
+      mList.innerHTML = data.milestones
+        .map(m => `<li><span class="bullet">•</span><span>${m}</span></li>`)
+        .join("");
+
+      // Update Symptoms
+      const sList = document.getElementById("symptomList");
+      sList.innerHTML = data.symptoms
+        .map(s => `<li><span class="bullet">•</span><span>${s}</span></li>`)
+        .join("");
+
+      // Manage Step Controls
+      document.getElementById("prevBtn").disabled = currentWeekIndex === 0;
+      document.getElementById("nextBtn").disabled = currentWeekIndex === availableWeeks.length - 1;
+
+      // Persist in client storage
+      localStorage.setItem("dinoNuggetWeek", week);
+    }
+
+    // Step Events
+    document.getElementById("prevBtn").addEventListener("click", () => {
+      if (currentWeekIndex > 0) {
+        currentWeekIndex--;
+        renderWeek();
+      }
+    });
+
+    document.getElementById("nextBtn").addEventListener("click", () => {
+      if (currentWeekIndex < availableWeeks.length - 1) {
+        currentWeekIndex++;
+        renderWeek();
+      }
+    });
+
+    document.getElementById("resetData").addEventListener("click", () => {
+      localStorage.removeItem("dinoNuggetWeek");
+      currentWeekIndex = 0;
+      renderWeek();
+    });
+
+    // Run Initial Render
+    renderWeek();
+  </script>
+</body>
+</html>
