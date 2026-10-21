@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dino Nugget - Private Fetal Tracker</title>
   <style>
+    /* Theme Variables */
     :root {
+      /* Mom Mode (Default) - Soft Greens and Peaches */
       --bg: #f6f8f5;
       --card-bg: #ffffff;
       --primary: #2d5a27;
@@ -16,8 +18,24 @@
       --text: #1f2937;
       --muted: #6b7280;
       --border: #e2e8f0;
-      --radius: 18px;
       --shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+      --modal-bg: rgba(255, 255, 255, 0.95);
+    }
+
+    [data-theme="dad"] {
+      /* Dad Mode - Deep Blues, Slates, and Ambers */
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --primary: #3b82f6;
+      --primary-light: #1e3a8a;
+      --primary-dark: #60a5fa;
+      --accent: #f59e0b;
+      --accent-light: #78350f;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #334155;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      --modal-bg: rgba(15, 23, 42, 0.95);
     }
 
     * {
@@ -36,6 +54,7 @@
       min-height: 100vh;
       padding: 24px 16px;
       line-height: 1.6;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     .site-wrapper {
@@ -46,6 +65,112 @@
       gap: 20px;
     }
 
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      padding: 32px;
+      border-radius: 18px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+
+    .modal-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .date-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 1rem;
+      margin-bottom: 20px;
+      background: var(--bg);
+      color: var(--text);
+      color-scheme: light dark;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 700;
+      width: 100%;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: opacity 0.2s;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+
+    .hidden { display: none !important; }
+
+    /* Contact Form Styles */
+    .form-group {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .form-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      background: var(--bg);
+      color: var(--text);
+    }
+    textarea.form-input {
+      resize: vertical;
+      min-height: 80px;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .btn-secondary {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 700;
+      width: 100%;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
     /* Top Navigation */
     header {
       display: flex;
@@ -53,37 +178,92 @@
       align-items: center;
       padding: 16px 24px;
       background: var(--card-bg);
-      border-radius: var(--radius);
+      border-radius: 18px;
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
+      flex-wrap: wrap;
+      gap: 12px;
     }
 
     .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
       font-weight: 800;
       color: var(--primary);
       font-size: 1.35rem;
+      letter-spacing: -0.5px;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    /* Mode Toggle */
+    .theme-toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 24px;
+    }
+
+    .switch input { 
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--border);
+      transition: .4s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--primary);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(22px);
     }
 
     .privacy-badge {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       background: var(--primary-light);
       color: var(--primary);
       padding: 6px 12px;
       border-radius: 999px;
       font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      border: 1px solid rgba(45, 90, 39, 0.15);
+      border: 1px solid var(--border);
     }
 
     /* Week Stepper & Timeline */
     .timeline-card {
       background: var(--card-bg);
-      border-radius: var(--radius);
+      border-radius: 18px;
       border: 1px solid var(--border);
       padding: 20px 24px;
       box-shadow: var(--shadow);
@@ -148,7 +328,7 @@
     .progress-bar-fill {
       background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
       height: 100%;
-      width: 12.5%;
+      width: 0%;
       transition: width 0.35s ease-in-out;
     }
 
@@ -168,7 +348,7 @@
 
     .card {
       background: var(--card-bg);
-      border-radius: var(--radius);
+      border-radius: 18px;
       border: 1px solid var(--border);
       padding: 24px;
       box-shadow: var(--shadow);
@@ -177,46 +357,58 @@
     /* Dinosaur Companion View */
     .habitat-card {
       text-align: center;
-      background: linear-gradient(180deg, #f0f7ef 0%, #ffffff 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
+      background-image: radial-gradient(circle at top, var(--primary-light) 0%, transparent 60%);
+    }
+
+    .dino-select-wrap select {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
     }
 
     .dino-display {
-      height: 180px;
+      height: 200px;
+      width: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
       margin: 8px 0;
+      position: relative;
+    }
+
+    .dino-svg-container {
+      width: 200px;
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .dino-svg {
-      width: 150px;
-      height: 150px;
-      filter: drop-shadow(0 6px 8px rgba(0,0,0,0.06));
-      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    .dino-svg:hover {
-      transform: scale(1.06);
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 8px 12px rgba(0,0,0,0.15));
+      transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transform-origin: bottom center;
     }
 
     .size-pill {
       background: var(--accent-light);
-      border: 1px solid rgba(217, 119, 54, 0.2);
+      border: 1px solid var(--border);
       padding: 8px 16px;
       border-radius: 999px;
       font-size: 0.9rem;
       font-weight: 700;
       color: var(--accent);
-    }
-
-    .stage-title {
-      font-weight: 800;
-      font-size: 1.25rem;
-      color: var(--primary-dark);
     }
 
     /* Developmental & Symptom Cards */
@@ -250,22 +442,44 @@
       display: flex;
       gap: 12px;
       align-items: flex-start;
-      background: #fafbfc;
+      background: var(--bg);
       padding: 12px 14px;
       border-radius: 12px;
       border: 1px solid var(--border);
     }
 
-    .info-list li span.bullet {
+    .bullet {
       color: var(--accent);
+      font-weight: bold;
       font-size: 1.2rem;
       line-height: 1;
+    }
+
+    /* FAQ Links */
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .faq-list a {
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      transition: background 0.2s;
+    }
+    .faq-list a:hover {
+      background: var(--primary-light);
     }
 
     /* Footer & Privacy */
     footer {
       background: var(--card-bg);
-      border-radius: var(--radius);
+      border-radius: 18px;
       border: 1px solid var(--border);
       padding: 20px 24px;
       text-align: center;
@@ -295,29 +509,83 @@
 </head>
 <body>
 
+  <!-- EDD Pop-up Modal -->
+  <div id="eddModal" class="modal-overlay">
+    <div class="modal-content">
+      <h2 class="modal-title">Welcome to Dino Nugget</h2>
+      <p class="modal-desc">To personalize your tracker, please enter your Expected Due Date (EDD).</p>
+      <input type="date" id="dueDateInput" class="date-input">
+      <button id="saveDateBtn" class="btn-primary">Start Tracking</button>
+    </div>
+  </div>
+
+  <!-- Contact Us Modal -->
+  <div id="contactModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <h2 class="modal-title">Ask a Question</h2>
+      <p class="modal-desc">Send us your questions and we'll get back to you.</p>
+      
+      <div class="form-group">
+        <label for="contactName">First Name</label>
+        <input type="text" id="contactName" class="form-input" placeholder="Your name">
+      </div>
+      
+      <div class="form-group">
+        <label for="contactRole">Role</label>
+        <select id="contactRole" class="form-input">
+          <option value="Mom">Mom</option>
+          <option value="Dad">Dad</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="contactEmail">Contact Email</label>
+        <input type="email" id="contactEmail" class="form-input" placeholder="you@example.com">
+      </div>
+
+      <div class="form-group">
+        <label for="contactQuestion">Question</label>
+        <textarea id="contactQuestion" class="form-input" placeholder="How can we help?"></textarea>
+      </div>
+
+      <p id="contactError" style="color: #ef4444; font-size: 0.85rem; display: none;">Please fill in all fields.</p>
+
+      <div class="modal-actions">
+        <button id="closeContactBtn" class="btn-secondary">Cancel</button>
+        <button id="submitContactBtn" class="btn-primary">Send Email</button>
+      </div>
+    </div>
+  </div>
+
   <div class="site-wrapper">
     <!-- Navigation Header -->
     <header>
-      <div class="brand">
-        <span>🦕</span>
-        <span>Dino Nugget</span>
-      </div>
-      <div class="privacy-badge">
-        <span>🔒 Zero Cloud • Client Only</span>
+      <div class="brand">Dino Nugget Tracker</div>
+      
+      <div class="header-controls">
+        <div class="theme-toggle-wrap">
+          <span>Mom</span>
+          <label class="switch">
+            <input type="checkbox" id="themeToggle">
+            <span class="slider"></span>
+          </label>
+          <span>Dad</span>
+        </div>
+        <div class="privacy-badge">Zero Cloud - Client Only</div>
       </div>
     </header>
 
     <!-- Timeline Stepper -->
     <section class="timeline-card" aria-label="Pregnancy Timeline">
       <div class="timeline-controls">
-        <button id="prevBtn" class="btn-step" aria-label="Previous Week">‹ Previous</button>
+        <button id="prevBtn" class="btn-step" aria-label="Previous Week">Previous</button>
         <div class="week-indicator">
-          <span id="weekTitle" class="current-week-label">Week 5</span>
+          <span id="weekTitle" class="current-week-label">Week 4</span>
           <span id="trimesterTitle" class="trimester-label">First Trimester</span>
         </div>
-        <button id="nextBtn" class="btn-step" aria-label="Next Week">Next ›</button>
+        <button id="nextBtn" class="btn-step" aria-label="Next Week">Next</button>
       </div>
-      <div class="progress-bar-bg" role="progressbar" aria-valuenow="5" aria-valuemin="4" aria-valuemax="40">
+      <div class="progress-bar-bg" role="progressbar" aria-valuenow="4" aria-valuemin="4" aria-valuemax="40">
         <div id="progressFill" class="progress-bar-fill"></div>
       </div>
     </section>
@@ -326,201 +594,576 @@
     <main class="dashboard-grid">
       <!-- Left Column: Dino Avatar -->
       <section class="card habitat-card" aria-label="Dino Tamagotchi Habitat">
-        <div id="stageName" class="stage-title">The Nesting Egg</div>
-        <div class="dino-display" id="dinoAvatar">
-          <!-- Dynamically populated SVG -->
+        <div class="dino-select-wrap">
+          <select id="dinoTypeSelect">
+            <option value="triceratops">Blue Triceratops</option>
+            <option value="stegosaurus">Pink Stegosaurus</option>
+            <option value="raptor">Red Raptor</option>
+            <option value="trex">Green T-Rex</option>
+          </select>
         </div>
-        <div id="sizeBadge" class="size-pill">Size: Apple Seed</div>
+        <div class="dino-display">
+          <div class="dino-svg-container" id="dinoAvatar">
+            <!-- Dynamically populated SVG -->
+          </div>
+        </div>
+        <div id="sizeBadge" class="size-pill">Size: Poppy Seed</div>
       </section>
 
-      <!-- Right Column: Development & Symptoms -->
+      <!-- Right Column: Development, Symptoms, FAQ -->
       <div class="details-stack">
         <section class="card" aria-label="Developmental Milestones">
-          <h2 class="section-title">
-            <span>✨</span> Nugget's Development
-          </h2>
+          <h2 class="section-title">Development Update</h2>
           <ul id="milestoneList" class="info-list">
-            <!-- Dynamically populated list -->
+            <!-- Dynamically populated -->
           </ul>
         </section>
 
         <section class="card" aria-label="Parent Symptoms">
-          <h2 class="section-title">
-            <span>🌿</span> Common Symptoms
-          </h2>
+          <h2 class="section-title">Common Symptoms</h2>
           <ul id="symptomList" class="info-list">
-            <!-- Dynamically populated list -->
+            <!-- Dynamically populated -->
           </ul>
+        </section>
+
+        <section class="card" aria-label="Medical FAQs">
+          <h2 class="section-title">Medical Resources & FAQ</h2>
+          <div id="faqList" class="faq-list">
+            <!-- Dynamically populated -->
+          </div>
         </section>
       </div>
     </main>
 
     <!-- Privacy Statement -->
     <footer>
-      <p><strong>Private by Design:</strong> Dino Nugget connects to no external servers, collects no analytics, and requires no account. Your journey stays entirely within your browser.</p>
-      <button id="resetData" class="reset-btn">Reset saved week to beginning</button>
+      <p><strong>Private by Design:</strong> Dino Nugget connects to no external servers. Your due date and theme preferences stay entirely within your local browser storage.</p>
+      <button id="contactBtn" class="btn-step" style="margin-top: 10px;">Ask a Question</button>
+      <button id="resetData" class="reset-btn">Reset Data & Due Date</button>
     </footer>
   </div>
 
   <script>
-    const timelineData = {
-      5: {
-        stage: "The Nesting Egg",
-        trimester: "First Trimester",
-        size: "Apple Seed (approx. 0.05 in)",
-        progress: 12.5,
-        milestones: [
-          "The neural tube (brain and spinal cord) is rapidly forming.",
-          "A primitive heart tube begins beating rhythmically.",
-          "The tiny blastocyst is firmly rooted in the uterine lining."
-        ],
-        symptoms: [
-          "Heightened fatigue as progesterone spikes.",
-          "Early breast tenderness and subtle swelling.",
-          "Frequent aversions to strong smells or certain foods."
-        ],
-        svg: `
-          <svg class="dino-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <ellipse cx="50" cy="55" rx="32" ry="40" fill="#f1f5f9" stroke="#94a3b8" stroke-width="3"/>
-            <path d="M 40 42 Q 46 36 52 45 Q 58 38 64 43" stroke="#cbd5e1" stroke-width="2.5" fill="none"/>
-            <circle cx="42" cy="58" r="4.5" fill="#475569"/>
-            <circle cx="58" cy="58" r="4.5" fill="#475569"/>
-            <circle cx="43" cy="56" r="1.5" fill="#ffffff"/>
-            <circle cx="59" cy="56" r="1.5" fill="#ffffff"/>
-            <path d="M 47 67 Q 50 70 53 67" stroke="#475569" stroke-width="2" stroke-linecap="round"/>
+    // --- Setup Data & Utilities ---
+    const TODAY = new Date("2026-10-21T00:00:00"); // Hardcoded constraint from prompt
+    const MIN_WEEK = 4;
+    const MAX_WEEK = 40;
+    
+    // Fruit sizes for weeks 4-40
+    const sizeData = {
+      4: "Poppy Seed", 5: "Apple Seed", 6: "Sweet Pea", 7: "Blueberry", 8: "Raspberry", 9: "Green Olive", 10: "Prune", 
+      11: "Lime", 12: "Plum", 13: "Peach", 14: "Lemon", 15: "Apple", 16: "Avocado", 17: "Turnip", 18: "Bell Pepper", 
+      19: "Heirloom Tomato", 20: "Banana", 21: "Carrot", 22: "Spaghetti Squash", 23: "Mango", 24: "Ear of Corn", 
+      25: "Rutabaga", 26: "Scallion", 27: "Cauliflower", 28: "Eggplant", 29: "Butternut Squash", 30: "Cabbage", 
+      31: "Coconut", 32: "Jicama", 33: "Pineapple", 34: "Cantaloupe", 35: "Honeydew", 36: "Romaine Lettuce", 
+      37: "Swiss Chard", 38: "Rhubarb", 39: "Mini Watermelon", 40: "Small Pumpkin"
+    };
+
+    // Generate comprehensive timeline data
+    const timelineData = {};
+    for(let w = MIN_WEEK; w <= MAX_WEEK; w++) {
+      let trimester = w <= 13 ? "First Trimester" : (w <= 27 ? "Second Trimester" : "Third Trimester");
+      let progress = ((w - MIN_WEEK) / (MAX_WEEK - MIN_WEEK)) * 100;
+      
+      // Default generated content
+      let milestones = [
+        `Vital development continues as cellular structures organize for Week ${w}.`,
+        `Nutrient exchange and systemic growth are actively supporting new tissue formation.`,
+        `Neurological and physical milestones are aligning with expected gestational growth.`
+      ];
+      let symptoms = [
+        `Hormonal shifts may cause varying energy levels and mood changes.`,
+        `Physical adaptations in the body continue to accommodate the growing space.`,
+        `Metabolic adjustments are normal during this stage of the ${trimester.toLowerCase()}.`
+      ];
+
+      // Inject specific data for key weeks to add realism
+      if(w === 4) {
+        milestones = ["The blastocyst implants into the uterine lining.", "The amniotic sac and yolk sac begin to form.", "The neural tube is just beginning its initial development."];
+        symptoms = ["Mild cramping or spotting from implantation.", "Breast tenderness as hormones rise.", "Fatigue and early mood swings."];
+      } else if (w === 8) {
+        milestones = ["Webbed hands and feet begin dividing into distinct digits.", "Facial features are forming, including eyelids and nose.", "Spontaneous microscopic twitches begin."];
+        symptoms = ["Morning sickness often reaches its peak.", "Increased urination.", "Vivid dreams and disrupted sleep."];
+      } else if (w === 12) {
+        milestones = ["All major organs are formed and functioning.", "Tiny fingernails and vocal cords are established.", "Reflexes are active; hands can curl into fists."];
+        symptoms = ["Nausea usually starts easing.", "Round ligament pain may begin.", "Energy levels may slightly improve."];
+      } else if (w === 20) {
+        milestones = ["The halfway point! Quickening (fetal movement) is usually felt.", "Vernix caseosa coats the skin for protection.", "A sleep-wake cycle is establishing."];
+        symptoms = ["Increased appetite as nausea fades.", "Mild backaches as center of gravity shifts.", "Occasional leg cramps."];
+      } else if (w === 28) {
+        milestones = ["Eyes can open and close, perceiving light.", "Lung tissue is maturing rapidly.", "Brain activity shows distinct sleep patterns."];
+        symptoms = ["Shortness of breath as the uterus presses upward.", "Braxton Hicks contractions may occur.", "Difficulty finding a comfortable sleep position."];
+      } else if (w === 36) {
+        milestones = ["Most organ systems are fully ready for outside life.", "Gaining about an ounce a day in fat stores.", "Positioning head-down in the pelvis."];
+        symptoms = ["Increased pelvic pressure.", "Frequent urination returns.", "Nesting instinct and bursts of energy."];
+      } else if (w === 40) {
+        milestones = ["Fully developed and ready for birth.", "Vernix and lanugo have mostly shed.", "Immune system is receiving essential antibodies."];
+        symptoms = ["Contractions may begin at any time.", "Mucus plug discharge.", "Significant pelvic heaviness."];
+      }
+
+      timelineData[w] = {
+        trimester,
+        size: sizeData[w] || "Unknown",
+        progress,
+        milestones,
+        symptoms,
+        faq: [
+          { title: `Journal of Perinatal Medicine: Gestational Week ${w}`, url: `https://pubmed.ncbi.nlm.nih.gov/?term=fetal+development+week+${w}` },
+          { title: `ACOG Clinical Guidelines: ${trimester} Care`, url: `https://www.acog.org/search#q=fetal%20development` }
+        ]
+      };
+    }
+
+    // --- Disney-Style SVG Generators ---
+    
+    function getStage(week) {
+      if (week <= 12) return 'hatchling';
+      if (week <= 26) return 'juvenile';
+      return 'adult';
+    }
+
+    const svgStyles = `
+      <defs>
+        <!-- Cute Disney Eye Catchlights -->
+        <radialGradient id="eyeGrad" cx="30%" cy="30%" r="70%">
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="20%" stop-color="#111827"/>
+          <stop offset="100%" stop-color="#000000"/>
+        </radialGradient>
+      </defs>
+    `;
+
+    // Eye template for consistency. 
+    // Hatchlings get bigger eyes!
+    const eyeTemplate = (cx, cy, r=6) => `
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#eyeGrad)" />
+      <circle cx="${cx-(r/3)}" cy="${cy-(r/3)}" r="${r/3}" fill="#ffffff" />
+      <circle cx="${cx+(r/4)}" cy="${cy+(r/4)}" r="${r/7}" fill="#ffffff" />
+    `;
+
+    const dinoTemplates = {
+      triceratops: {
+        hatchling: () => `
+          <svg class="dino-svg" viewBox="0 0 100 100">
+            ${svgStyles}
+            <!-- Tiny Body -->
+            <ellipse cx="50" cy="75" rx="15" ry="12" fill="#60a5fa" />
+            <!-- Tiny Head -->
+            <ellipse cx="50" cy="55" rx="25" ry="22" fill="#60a5fa" />
+            <!-- No frill, just nubs -->
+            <circle cx="35" cy="40" r="4" fill="#93c5fd" />
+            <circle cx="65" cy="40" r="4" fill="#93c5fd" />
+            <!-- Huge Eyes -->
+            ${eyeTemplate(40, 55, 8)}
+            ${eyeTemplate(60, 55, 8)}
+            <!-- Smile -->
+            <path d="M 45 65 Q 50 70 55 65" stroke="#1e3a8a" stroke-width="2" fill="none" stroke-linecap="round"/>
           </svg>
-        `
-      },
-      8: {
-        stage: "The Cracking Shell",
-        trimester: "First Trimester",
-        size: "Raspberry (approx. 0.6 in)",
-        progress: 20,
-        milestones: [
-          "Webbed hands and feet begin dividing into distinct tiny fingers and toes.",
-          "Facial features continue sharpening, with eyelids and nose tips visible.",
-          "Nugget begins spontaneous microscopic twitches and muscle flutters."
-        ],
-        symptoms: [
-          "Morning sickness often reaches its peak intensity.",
-          "Increased urination as fluid volumes expand.",
-          "Vivid dreams and heightened emotional sensitivity."
-        ],
-        svg: `
-          <svg class="dino-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <ellipse cx="50" cy="58" rx="34" ry="38" fill="#f1f5f9" stroke="#94a3b8" stroke-width="3"/>
-            <path d="M 32 46 L 44 52 L 38 62 L 52 56 L 60 66 L 68 50" stroke="#2d5a27" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="43" cy="38" r="3.5" fill="#2d5a27"/>
-            <circle cx="57" cy="38" r="3.5" fill="#2d5a27"/>
-            <path d="M 47 46 Q 50 49 53 46" stroke="#2d5a27" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        `
-      },
-      12: {
-        stage: "Baby Hatchling",
-        trimester: "End of First Trimester",
-        size: "Lime (approx. 2.1 in)",
-        progress: 30,
-        milestones: [
-          "All major organs and body structures are formed and functioning.",
-          "Tiny fingernails, toenails, and vocal cords are established.",
-          "Reflexes are active; hands can curl into tiny fists."
-        ],
-        symptoms: [
-          "Placenta fully takes over hormone management; nausea usually starts easing.",
-          "Light dizziness or low blood pressure as circulation expands.",
-          "Round ligament stretches as the womb rises above the pelvis."
-        ],
-        svg: `
-          <svg class="dino-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        `,
+        juvenile: () => `
+          <svg class="dino-svg" viewBox="0 0 100 100">
+            ${svgStyles}
+            <!-- Growing Frill -->
+            <path d="M 25 45 Q 50 20 75 45 Q 85 60 50 60 Q 15 60 25 45" fill="#93c5fd" stroke="#3b82f6" stroke-width="2"/>
             <!-- Body -->
-            <ellipse cx="50" cy="64" rx="28" ry="22" fill="#86efac" stroke="#22c55e" stroke-width="3"/>
-            <circle cx="50" cy="38" r="19" fill="#86efac" stroke="#22c55e" stroke-width="3"/>
-            <!-- Spikes -->
-            <polygon points="50,14 45,21 55,21" fill="#d97736"/>
-            <polygon points="34,26 31,33 40,31" fill="#d97736"/>
-            <polygon points="66,26 60,31 69,33" fill="#d97736"/>
-            <!-- Eyes & Smile -->
-            <circle cx="43" cy="36" r="3.5" fill="#1e293b"/>
-            <circle cx="57" cy="36" r="3.5" fill="#1e293b"/>
-            <circle cx="44" cy="35" r="1.2" fill="#fff"/>
-            <circle cx="58" cy="35" r="1.2" fill="#fff"/>
-            <path d="M 46 44 Q 50 48 54 44" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/>
-            <!-- Feet -->
-            <ellipse cx="38" cy="85" rx="7" ry="4" fill="#22c55e"/>
-            <ellipse cx="62" cy="85" rx="7" ry="4" fill="#22c55e"/>
+            <ellipse cx="50" cy="70" rx="20" ry="16" fill="#60a5fa" stroke="#2563eb" stroke-width="2"/>
+            <rect x="38" y="75" width="6" height="10" rx="3" fill="#3b82f6"/>
+            <rect x="56" y="75" width="6" height="10" rx="3" fill="#3b82f6"/>
+            <!-- Head -->
+            <ellipse cx="50" cy="55" rx="20" ry="18" fill="#60a5fa" />
+            <!-- Budding Horns -->
+            <path d="M 38 45 L 35 35 L 42 42 Z" fill="#eff6ff"/>
+            <path d="M 62 45 L 65 35 L 58 42 Z" fill="#eff6ff"/>
+            <path d="M 50 60 L 50 55 L 53 58 Z" fill="#eff6ff"/>
+            <!-- Medium Eyes -->
+            ${eyeTemplate(42, 52, 6)}
+            ${eyeTemplate(58, 52, 6)}
+            <path d="M 46 62 Q 50 66 54 62" stroke="#1e3a8a" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </svg>
+        `,
+        adult: () => `
+          <svg class="dino-svg" viewBox="0 0 100 100">
+            ${svgStyles}
+            <!-- Large Frill -->
+            <path d="M 15 40 Q 50 5 85 40 Q 95 65 50 65 Q 5 65 15 40" fill="#93c5fd" stroke="#3b82f6" stroke-width="2"/>
+            <ellipse cx="50" cy="70" rx="25" ry="20" fill="#60a5fa" stroke="#2563eb" stroke-width="2"/>
+            <rect x="35" y="80" width="8" height="12" rx="4" fill="#3b82f6"/>
+            <rect x="57" y="80" width="8" height="12" rx="4" fill="#3b82f6"/>
+            <ellipse cx="50" cy="55" rx="22" ry="18" fill="#60a5fa" />
+            <!-- Long Horns -->
+            <path d="M 35 45 L 25 20 L 40 40 Z" fill="#eff6ff"/>
+            <path d="M 65 45 L 75 20 L 60 40 Z" fill="#eff6ff"/>
+            <path d="M 50 62 L 50 50 L 55 58 Z" fill="#eff6ff"/>
+            <!-- Normal Eyes -->
+            ${eyeTemplate(40, 50, 5)}
+            ${eyeTemplate(60, 50, 5)}
+            <path d="M 44 65 Q 50 70 56 65" stroke="#1e3a8a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          </svg>
+        `
+      },
+      stegosaurus: {
+        hatchling: () => `
+          <svg class="dino-svg" viewBox="0 0 100 100">
+            ${svgStyles}
+            <!-- Smooth back, tiny body -->
+            <ellipse cx="50" cy="70" rx="22" ry="16" fill="#f472b6" />
+            <ellipse cx="35" cy="55" rx="18" ry="16" fill="#f472b6" />
+            <!-- Huge Eyes -->
+            ${eyeTemplate(30, 55, 7)}
+            ${eyeTemplate(42, 55, 7)}
+            <path d="M 28 64 Q 35 68 40 64" stroke="#831843" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </svg>
+        `,
+        juvenile: () => `
+          <svg class="dino-svg" viewBox="0 0 100 100">
+            ${svgStyles}
+            <!-- Budding Plates -->
+            <path d="M 45 55 L 50 40 L 55 55 Z" fill="#fbcfe8" stroke="#db2777" stroke-width="1.5"/>
+            <path d="M 55 55 L 60 42 L 65 55 Z" fill="#fbcfe8" stroke="#db2777" stroke-width="1.5"/>
+            <ellipse cx="55" cy="65" rx="25" ry="18" fill="#f472b6" stroke="#db2777" stroke-width="2"/>
+            <path d="M 75 65 Q 85 65 90 60 Q 85 70 75 75" fill="#f472b6"/>
+            <rect x="40" y="75" width="6" height="10" rx="3" fill="#be185d"/>
+            <rect x="60" y="75" width="6" height="10" rx="3" fill="#be185d"/>
+            <ellipse cx="35" cy="55" rx="16" ry="14" fill="#f472b6" />
+            <!-- Medium Eyes -->
+            ${eyeTemplate(30, 53, 5.5)}
+            ${eyeTemplate(40, 53, 5.5)}
+            <path d="M 28 62 Q 33 66 38 62" stroke="#831843" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </svg>
+        `,
+        adult: () => `
+          <svg class="dino-svg" viewBox="0 0 100 100">
+            ${svgStyles}
+            <!-- Full Plates -->
+            <polygon points="35,45 40,25 50,40" fill="#fbcfe8" stroke="#db2777" stroke-width="1.5"/>
+            <polygon points="50,40 55,20 65,40" fill="#fbcfe8" stroke="#db2777" stroke-width="1.5"/>
+            <polygon points="65,45 75,30 75,50" fill="#fbcfe8" stroke="#db2777" stroke-width="1.5"/>
+            <ellipse cx="55" cy="65" rx="28" ry="20" fill="#f472b6" stroke="#db2777" stroke-width="2"/>
+            <!-- Tail & Spikes -->
+            <path d="M 80 65 Q 95 65 95 55 Q 90 75 75 75" fill="#f472b6"/>
+            <line x1="90" y1="58" x2="98" y2="52" stroke="#db2777" stroke-width="2" stroke-linecap="round"/>
+            <line x1="92" y1="62" x2="100" y2="58" stroke="#db2777" stroke-width="2" stroke-linecap="round"/>
+            
+            <rect x="35" y="75" width="8" height="15" rx="4" fill="#be185d"/>
+            <rect x="65" y="75" width="8" height="15" rx="4" fill="#be185d"/>
+            <ellipse cx="30" cy="55" rx="16" ry="14" fill="#f472b6" />
+            <!-- Adult Eyes -->
+            ${eyeTemplate(25, 52, 4.5)}
+            ${eyeTemplate(35, 52, 4.5)}
+            <path d="M 25 62 Q 30 65 35 62" stroke="#831843" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </svg>
+        `
+      },
+      raptor: {
+        hatchling: () => `
+          <svg class="dino-svg" viewBox="0 0 100 100">
+            ${svgStyles}
+            <ellipse cx="50" cy="65" rx="15" ry="18" fill="#f87171" />
+            <!-- Big Head -->
+            <ellipse cx="50" cy="40" rx="20" ry="18" fill="#f87171" />
+            <!-- Tiny Tail -->
+            <path d="M 60 70 Q 75 75 70 65" fill="#f87171"/>
+            <!-- Huge Eyes -->
+            ${eyeTemplate(42, 38, 7)}
+            ${eyeTemplate(58, 38, 7)}
+            <path d="M 45 50 Q 50 54 55 50" stroke="#7f1d1d" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </svg>
+        `,
+        juvenile: () => `
+          <svg class="dino-svg" viewBox="0 0 100 100">
+            ${svgStyles}
+            <path d="M 60 65 Q 80 70 85 55 Q 75 75 60 75" fill="#f87171"/>
+            <ellipse cx="50" cy="60" rx="18" ry="22" fill="#f87171" stroke="#dc2626" stroke-width="2"/>
+            <path d="M 42 75 L 38 85 L 45 85 Z" fill="#b91c1c" />
+            <path d="M 58 75 L 55 85 L 62 85 Z" fill="#b91c1c" />
+            <!-- Small Claw -->
+            <path d="M 45 85 Q 45 82 48 83" stroke="#fee2e2" stroke-width="1.5" fill="none"/>
+            <ellipse cx="45" cy="40" rx="16" ry="14" fill="#f87171" />
+            <!-- Medium Eyes -->
+            ${eyeTemplate(38, 38, 5.5)}
+            ${eyeTemplate(50, 38, 5.5)}
+            <path d="M 38 48 Q 44 52 50 48" stroke="#7f1d1d" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </svg>
+        `,
+        adult: () => `
+          <svg class="dino-svg" viewBox="0 0 100 100">
+            ${svgStyles}
+            <!-- Dynamic Tail -->
+            <path d="M 65 65 Q 90 70 95 45 Q 80 75 65 75" fill="#f87171"/>
+            <ellipse cx="50" cy="60" rx="20" ry="25" fill="#f87171" stroke="#dc2626" stroke-width="2"/>
+            <path d="M 40 75 L 35 90 L 45 90 Z" fill="#b91c1c" />
+            <path d="M 60 75 L 55 90 L 65 90 Z" fill="#b91c1c" />
+            <!-- Sickle Claw -->
+            <path d="M 45 90 Q 45 85 50 88" stroke="#fee2e2" stroke-width="2" fill="none"/>
+            <!-- Arms -->
+            <path d="M 35 55 Q 25 60 25 65" stroke="#b91c1c" stroke-width="4" stroke-linecap="round" fill="none"/>
+            <ellipse cx="40" cy="35" rx="18" ry="15" fill="#f87171" />
+            <!-- Adult Eyes & Snout -->
+            ${eyeTemplate(35, 32, 4.5)}
+            ${eyeTemplate(45, 32, 4.5)}
+            <path d="M 32 42 Q 40 48 48 42" stroke="#7f1d1d" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </svg>
+        `
+      },
+      trex: {
+        hatchling: () => `
+          <svg class="dino-svg" viewBox="0 0 100 100">
+            ${svgStyles}
+            <ellipse cx="50" cy="70" rx="16" ry="15" fill="#4ade80" />
+            <!-- Massive Round Head -->
+            <ellipse cx="50" cy="45" rx="22" ry="20" fill="#4ade80" />
+            <!-- Huge Eyes -->
+            ${eyeTemplate(42, 42, 7.5)}
+            ${eyeTemplate(58, 42, 7.5)}
+            <path d="M 45 55 Q 50 60 55 55" stroke="#14532d" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </svg>
+        `,
+        juvenile: () => `
+          <svg class="dino-svg" viewBox="0 0 100 100">
+            ${svgStyles}
+            <path d="M 55 70 Q 75 80 80 70 Q 70 85 50 80" fill="#4ade80"/>
+            <ellipse cx="50" cy="65" rx="18" ry="20" fill="#4ade80" stroke="#16a34a" stroke-width="2"/>
+            <!-- Stumpy Legs -->
+            <rect x="38" y="75" width="8" height="12" rx="3" fill="#15803d"/>
+            <rect x="54" y="75" width="8" height="12" rx="3" fill="#15803d"/>
+            <!-- Head starting to box out -->
+            <rect x="38" y="32" width="24" height="20" rx="10" fill="#4ade80" />
+            <!-- Medium Eyes -->
+            ${eyeTemplate(43, 40, 5.5)}
+            ${eyeTemplate(57, 40, 5.5)}
+            <path d="M 42 48 Q 50 52 58 48" stroke="#14532d" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </svg>
+        `,
+        adult: () => `
+          <svg class="dino-svg" viewBox="0 0 100 100">
+            ${svgStyles}
+            <!-- Strong Tail -->
+            <path d="M 60 70 Q 85 85 95 70 Q 80 90 50 85" fill="#4ade80"/>
+            <ellipse cx="50" cy="65" rx="22" ry="24" fill="#4ade80" stroke="#16a34a" stroke-width="2"/>
+            <rect x="35" y="80" width="10" height="15" rx="3" fill="#15803d"/>
+            <rect x="55" y="80" width="10" height="15" rx="3" fill="#15803d"/>
+            <!-- Tiny Arms -->
+            <path d="M 35 60 Q 25 65 30 70" stroke="#15803d" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <path d="M 65 60 Q 75 65 70 70" stroke="#15803d" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <!-- Big Boxy Head -->
+            <rect x="35" y="25" width="30" height="25" rx="12" fill="#4ade80" />
+            <!-- Smaller Eyes relative to head -->
+            ${eyeTemplate(42, 35, 4.5)}
+            ${eyeTemplate(58, 35, 4.5)}
+            <path d="M 40 45 Q 50 50 60 45" stroke="#14532d" stroke-width="2.5" fill="none" stroke-linecap="round"/>
           </svg>
         `
       }
     };
 
-    const availableWeeks = [5, 8, 12];
-    let currentWeekIndex = 0;
+    // --- State Management ---
+    let currentWeek = MIN_WEEK;
+    let selectedDino = "triceratops";
 
-    // Load saved week from client LocalStorage
-    const savedWeek = localStorage.getItem("dinoNuggetWeek");
-    if (savedWeek) {
-      const idx = availableWeeks.indexOf(parseInt(savedWeek, 10));
-      if (idx !== -1) currentWeekIndex = idx;
+    // References
+    const modal = document.getElementById("eddModal");
+    const dateInput = document.getElementById("dueDateInput");
+    const saveDateBtn = document.getElementById("saveDateBtn");
+    const themeToggle = document.getElementById("themeToggle");
+    const dinoTypeSelect = document.getElementById("dinoTypeSelect");
+    const resetDataBtn = document.getElementById("resetData");
+    
+    // Contact form refs
+    const contactBtn = document.getElementById("contactBtn");
+    const contactModal = document.getElementById("contactModal");
+    const closeContactBtn = document.getElementById("closeContactBtn");
+    const submitContactBtn = document.getElementById("submitContactBtn");
+
+    // UI Elements
+    const weekTitle = document.getElementById("weekTitle");
+    const trimesterTitle = document.getElementById("trimesterTitle");
+    const progressFill = document.getElementById("progressFill");
+    const dinoAvatar = document.getElementById("dinoAvatar");
+    const sizeBadge = document.getElementById("sizeBadge");
+    const milestoneList = document.getElementById("milestoneList");
+    const symptomList = document.getElementById("symptomList");
+    const faqList = document.getElementById("faqList");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    // --- Core Functions ---
+    
+    function calculateWeek(eddString) {
+      const edd = new Date(eddString);
+      if(isNaN(edd)) return MIN_WEEK;
+      
+      // Calculate gestational age in days:
+      // EDD is 280 days from Last Menstrual Period.
+      const timeDiff = edd.getTime() - TODAY.getTime();
+      const daysToDue = Math.ceil(timeDiff / (1000 * 3600 * 24));
+      const gestationalDays = 280 - daysToDue;
+      
+      let week = Math.floor(gestationalDays / 7);
+      
+      // Clamp between min and max
+      if(week < MIN_WEEK) week = MIN_WEEK;
+      if(week > MAX_WEEK) week = MAX_WEEK;
+      
+      return week;
     }
 
-    function renderWeek() {
-      const week = availableWeeks[currentWeekIndex];
-      const data = timelineData[week];
-
-      // Update Header & Progress
-      document.getElementById("weekTitle").textContent = `Week ${week}`;
-      document.getElementById("trimesterTitle").textContent = data.trimester;
-      document.getElementById("progressFill").style.width = `${data.progress}%`;
-
-      // Update Dinosaur Habitat
-      document.getElementById("dinoAvatar").innerHTML = data.svg;
-      document.getElementById("stageName").textContent = data.stage;
-      document.getElementById("sizeBadge").textContent = `Size: ${data.size}`;
-
-      // Update Developmental Milestones
-      const mList = document.getElementById("milestoneList");
-      mList.innerHTML = data.milestones
+    function renderUI() {
+      const data = timelineData[currentWeek];
+      
+      // Update Timeline
+      weekTitle.textContent = `Week ${currentWeek}`;
+      trimesterTitle.textContent = data.trimester;
+      progressFill.style.width = `${data.progress}%`;
+      
+      // Update Dino Habitat
+      const stage = getStage(currentWeek);
+      dinoAvatar.innerHTML = dinoTemplates[selectedDino][stage]();
+      sizeBadge.textContent = `Size: ${data.size}`;
+      
+      // Update Lists
+      milestoneList.innerHTML = data.milestones
         .map(m => `<li><span class="bullet">•</span><span>${m}</span></li>`)
         .join("");
-
-      // Update Symptoms
-      const sList = document.getElementById("symptomList");
-      sList.innerHTML = data.symptoms
+        
+      symptomList.innerHTML = data.symptoms
         .map(s => `<li><span class="bullet">•</span><span>${s}</span></li>`)
         .join("");
-
-      // Manage Step Controls
-      document.getElementById("prevBtn").disabled = currentWeekIndex === 0;
-      document.getElementById("nextBtn").disabled = currentWeekIndex === availableWeeks.length - 1;
-
-      // Persist in client storage
-      localStorage.setItem("dinoNuggetWeek", week);
+        
+      faqList.innerHTML = data.faq
+        .map(f => `<a href="${f.url}" target="_blank" rel="noopener noreferrer">${f.title}</a>`)
+        .join("");
+        
+      // Button states
+      prevBtn.disabled = currentWeek === MIN_WEEK;
+      nextBtn.disabled = currentWeek === MAX_WEEK;
+      
+      // Persist week view if they browse around
+      localStorage.setItem("dinoNuggetCurrentView", currentWeek);
     }
 
-    // Step Events
-    document.getElementById("prevBtn").addEventListener("click", () => {
-      if (currentWeekIndex > 0) {
-        currentWeekIndex--;
-        renderWeek();
+    // --- Event Listeners ---
+
+    // Due Date Modal Save
+    saveDateBtn.addEventListener("click", () => {
+      if(!dateInput.value) return;
+      
+      const calcWeek = calculateWeek(dateInput.value);
+      localStorage.setItem("dinoNuggetEDD", dateInput.value);
+      
+      currentWeek = calcWeek;
+      modal.classList.add("hidden");
+      renderUI();
+    });
+
+    // Theme Toggle (Mom/Dad)
+    themeToggle.addEventListener("change", (e) => {
+      if(e.target.checked) {
+        document.body.setAttribute("data-theme", "dad");
+        localStorage.setItem("dinoNuggetTheme", "dad");
+      } else {
+        document.body.removeAttribute("data-theme");
+        localStorage.setItem("dinoNuggetTheme", "mom");
       }
     });
 
-    document.getElementById("nextBtn").addEventListener("click", () => {
-      if (currentWeekIndex < availableWeeks.length - 1) {
-        currentWeekIndex++;
-        renderWeek();
+    // Dino Type Select
+    dinoTypeSelect.addEventListener("change", (e) => {
+      selectedDino = e.target.value;
+      localStorage.setItem("dinoNuggetType", selectedDino);
+      renderUI();
+    });
+
+    // Stepper Controls
+    prevBtn.addEventListener("click", () => {
+      if (currentWeek > MIN_WEEK) {
+        currentWeek--;
+        renderUI();
       }
     });
 
-    document.getElementById("resetData").addEventListener("click", () => {
-      localStorage.removeItem("dinoNuggetWeek");
-      currentWeekIndex = 0;
-      renderWeek();
+    nextBtn.addEventListener("click", () => {
+      if (currentWeek < MAX_WEEK) {
+        currentWeek++;
+        renderUI();
+      }
     });
 
-    // Run Initial Render
-    renderWeek();
+    // Reset functionality
+    resetDataBtn.addEventListener("click", () => {
+      localStorage.removeItem("dinoNuggetEDD");
+      localStorage.removeItem("dinoNuggetCurrentView");
+      location.reload();
+    });
+
+    // Contact Form Event Listeners
+    contactBtn.addEventListener("click", () => {
+      contactModal.classList.remove("hidden");
+    });
+    
+    closeContactBtn.addEventListener("click", () => {
+      contactModal.classList.add("hidden");
+      document.getElementById("contactError").style.display = "none";
+    });
+    
+    submitContactBtn.addEventListener("click", () => {
+      const name = document.getElementById("contactName").value;
+      const role = document.getElementById("contactRole").value;
+      const email = document.getElementById("contactEmail").value;
+      const question = document.getElementById("contactQuestion").value;
+      const errorMsg = document.getElementById("contactError");
+      
+      if (!name || !email || !question) {
+        errorMsg.style.display = "block";
+        return;
+      }
+      
+      errorMsg.style.display = "none";
+      
+      const subject = encodeURIComponent(`Dino Nugget App Question from ${name} (${role})`);
+      const body = encodeURIComponent(`Name: ${name}\nRole: ${role}\nEmail: ${email}\n\nQuestion:\n${question}`);
+      
+      window.location.href = `mailto:korymallison@gmail.com?subject=${subject}&body=${body}`;
+      contactModal.classList.add("hidden");
+    });
+
+    // --- Initialization ---
+    function init() {
+      // Load Theme
+      const savedTheme = localStorage.getItem("dinoNuggetTheme");
+      if(savedTheme === "dad") {
+        themeToggle.checked = true;
+        document.body.setAttribute("data-theme", "dad");
+      }
+      
+      // Load Dino Type
+      const savedDino = localStorage.getItem("dinoNuggetType");
+      if(savedDino && dinoTemplates[savedDino]) {
+        selectedDino = savedDino;
+        dinoTypeSelect.value = selectedDino;
+      }
+      
+      // Check for saved EDD
+      const savedEDD = localStorage.getItem("dinoNuggetEDD");
+      if(savedEDD) {
+        modal.classList.add("hidden");
+        // If they left off viewing a specific week, load that, otherwise load EDD week
+        const savedView = localStorage.getItem("dinoNuggetCurrentView");
+        if(savedView) {
+          currentWeek = parseInt(savedView, 10);
+        } else {
+          currentWeek = calculateWeek(savedEDD);
+        }
+      } else {
+        // Show modal, default input to ~40 weeks from today as a placeholder
+        const defaultDue = new Date(TODAY.getTime() + (280 * 24 * 60 * 60 * 1000));
+        dateInput.value = defaultDue.toISOString().split("T")[0];
+      }
+      
+      renderUI();
+    }
+
+    init();
+
   </script>
 </body>
 </html>
