@@ -525,35 +525,37 @@
       <h2 class="modal-title">Ask a Question</h2>
       <p class="modal-desc">Send us your questions and we'll get back to you.</p>
       
-      <div class="form-group">
-        <label for="contactName">First Name</label>
-        <input type="text" id="contactName" class="form-input" placeholder="Your name">
-      </div>
-      
-      <div class="form-group">
-        <label for="contactRole">Role</label>
-        <select id="contactRole" class="form-input">
-          <option value="Mom">Mom</option>
-          <option value="Dad">Dad</option>
-        </select>
-      </div>
+      <!-- IMPORTANT: Replace YOUR_ENDPOINT_HERE with your unique Formspree form ID -->
+      <!-- e.g., action="https://formspree.io/f/mdoqozwl" -->
+      <form action="https://formspree.io/f/YOUR_ENDPOINT_HERE" method="POST">
+        <div class="form-group">
+          <label for="contactName">First Name</label>
+          <input type="text" id="contactName" name="First Name" class="form-input" placeholder="Your name" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="contactRole">Role</label>
+          <select id="contactRole" name="Role" class="form-input">
+            <option value="Mom">Mom</option>
+            <option value="Dad">Dad</option>
+          </select>
+        </div>
 
-      <div class="form-group">
-        <label for="contactEmail">Contact Email</label>
-        <input type="email" id="contactEmail" class="form-input" placeholder="you@example.com">
-      </div>
+        <div class="form-group">
+          <label for="contactEmail">Contact Email</label>
+          <input type="email" id="contactEmail" name="Email" class="form-input" placeholder="you@example.com" required>
+        </div>
 
-      <div class="form-group">
-        <label for="contactQuestion">Question</label>
-        <textarea id="contactQuestion" class="form-input" placeholder="How can we help?"></textarea>
-      </div>
+        <div class="form-group">
+          <label for="contactQuestion">Question</label>
+          <textarea id="contactQuestion" name="Question" class="form-input" placeholder="How can we help?" required></textarea>
+        </div>
 
-      <p id="contactError" style="color: #ef4444; font-size: 0.85rem; display: none;">Please fill in all fields.</p>
-
-      <div class="modal-actions">
-        <button id="closeContactBtn" class="btn-secondary">Cancel</button>
-        <button id="submitContactBtn" class="btn-primary">Send Email</button>
-      </div>
+        <div class="modal-actions">
+          <button type="button" id="closeContactBtn" class="btn-secondary">Cancel</button>
+          <button type="submit" class="btn-primary">Send Email</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -972,7 +974,6 @@
     const contactBtn = document.getElementById("contactBtn");
     const contactModal = document.getElementById("contactModal");
     const closeContactBtn = document.getElementById("closeContactBtn");
-    const submitContactBtn = document.getElementById("submitContactBtn");
 
     // UI Elements
     const weekTitle = document.getElementById("weekTitle");
@@ -1101,28 +1102,6 @@
     });
     
     closeContactBtn.addEventListener("click", () => {
-      contactModal.classList.add("hidden");
-      document.getElementById("contactError").style.display = "none";
-    });
-    
-    submitContactBtn.addEventListener("click", () => {
-      const name = document.getElementById("contactName").value;
-      const role = document.getElementById("contactRole").value;
-      const email = document.getElementById("contactEmail").value;
-      const question = document.getElementById("contactQuestion").value;
-      const errorMsg = document.getElementById("contactError");
-      
-      if (!name || !email || !question) {
-        errorMsg.style.display = "block";
-        return;
-      }
-      
-      errorMsg.style.display = "none";
-      
-      const subject = encodeURIComponent(`Dino Nugget App Question from ${name} (${role})`);
-      const body = encodeURIComponent(`Name: ${name}\nRole: ${role}\nEmail: ${email}\n\nQuestion:\n${question}`);
-      
-      window.location.href = `mailto:korymallison@gmail.com?subject=${subject}&body=${body}`;
       contactModal.classList.add("hidden");
     });
 
